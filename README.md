@@ -27,6 +27,8 @@ Arduino Uno(Atmega328)のフラッシュメモリ上に格納しました。
 * UTF16に対応するフォントデータ取得  
   getFontDataByUTF16()  
 
+##サンプル
+![sample](img/sample.png)
 
 
 
