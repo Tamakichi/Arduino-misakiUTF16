@@ -17,15 +17,17 @@ Arduino Uno(Atmega328)のフラッシュメモリ上に格納しました。
   
 ##利用可能API
 * UTF8文字列をUTF16文字列に変換する  
-  utf8ToUtf1()  
+  byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8)  
 * UTF8文字をUTF16に変換  
-  charUFT8toUTF16()  
+  byte charUFT8toUTF16(char *pUTF8, uint16_t *pUTF16)
 * UTF16半角コードをUTF16全角コードに変換  
-  utf16_HantoZen()  
+  uint16_t hkana2kana(uint16_t ucode);  
 * 半角カナを全角に変換  
-  hkana2kana()  
+  uint16_t hkana2kana(uint16_t ucode)
 * UTF16に対応するフォントデータ取得  
-  getFontDataByUTF16()  
+  boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) 
+* UTF8文字列に対応する先頭文字のフォントデータ取得  
+  char* getFontData(byte* fontdata,char *pUTF8)
 
 ##サンプル
 ![sample](img/sample.png)
