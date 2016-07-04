@@ -3,6 +3,7 @@
 // 内部フラッシュメモリバージョン
 //
 // 2016/03/16 全角小文字英数字の不具合対応
+// 2016/07/05 getFontData()関数の追加
 //
 
 
@@ -213,4 +214,24 @@ byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
     pUTF16++;
   }
   return len; 
+}
+
+// 指定したUTF8文字列の先頭のフォントデータの取得
+//   data(out): フォントデータ格納アドレス
+//   utf8(in) : UTF8文字列
+//   戻り値   : 次の文字列位置、取得失敗の場合NULLを返す
+//
+char* getFontData(byte* fontdata,char *pUTF8) {
+  uint16_t utf16;
+  uint8_t  n;
+  if (pUTF8 == NULL)
+    return NULL;
+  if (*pUTF8 == 0) 
+    return NULL;   
+  n = charUFT8toUTF16(pUTF8, &utf16);
+  if (n == 0)
+    return NULL;  
+  if (false == getFontDataByUTF16(fontdata, utf16) ) 
+    return NULL;
+  return (pUTF8+n);
 }
