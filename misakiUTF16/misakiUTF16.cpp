@@ -4,6 +4,7 @@
 //
 // 2016/03/16 全角小文字英数字の不具合対応
 // 2016/07/05 getFontData()関数の追加
+// 2016/07/10 getFontTableAddress()関数の追加
 //
 
 
@@ -234,4 +235,10 @@ char* getFontData(byte* fontdata,char *pUTF8) {
   if (false == getFontDataByUTF16(fontdata, utf16) ) 
     return NULL;
   return (pUTF8+n);
+}
+
+// フォントデータテーブル先頭アドレス取得
+// 戻り値 フォントデータテーブル先頭アドレス(PROGMEM上)
+const uint8_t* getFontTableAddress() {
+	return fdata;
 }

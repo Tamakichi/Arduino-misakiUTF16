@@ -1,37 +1,10 @@
 //
 // 美咲フォントライブラリサンプルプログラム by たま吉さん
-//  2016/03/15
+//  2016/03/15 作成
+//  2016/07/10 UTF-8文字列から直接フォントデータを取得するように修正
+//
 
 #include <misakiUTF16.h>
-
-// ビットパターン表示
-// d: 8ビットパターンデータ
-//
-void bitdisp(uint8_t d, char*fore , char* back) {
-  for (byte i=0; i<8;i++) {
-    if (d & 0x80>>i) 
-      Serial.print(fore);
-    else
-      Serial.print(back);
-  }
-}
-
-// フォントデータの表示
-// c(in) : フォントコード(UTF16コード)
-//
-void fontdisp(uint16_t c) {
-  byte buf[8]; 
-  
-  getFontDataByUTF16(buf, c);  // フォントデータの取得   
-  Serial.println((unsigned short)c, HEX);  // UTF16コード表示
-
-  for (byte i = 0; i < 8; i++) {
-    bitdisp(buf[i],"##","  ");
-    Serial.println("");
-  }  
-  Serial.println("");
-
-} 
 
 //
 // フォントパターンをコンソールに表示する
@@ -43,23 +16,21 @@ void fontdisp(uint16_t c) {
 // ※半角文字は全角文字に置き換えを行う
 //
 void banner(char * pUTF8, char* fore, char* back) {
-  int n;
-  uint16_t pUTF16[40];
+  int n=0;
   byte buf[20][8];  //160x8ドットのバナー表示パターン
-  n = Utf8ToUtf16(pUTF16, pUTF8);  // UTF8からUTF16に変換する
 
   // バナー用パターン作成
-  for (byte i=0; i < n; i++) {
-    getFontDataByUTF16(&buf[i][0], utf16_HantoZen(pUTF16[i]));  // フォントデータの取得    
-  }
-  
+  while(*pUTF8)
+    pUTF8 = getFontData(&buf[n++][0], pUTF8);  // フォントデータの取得
+    
   // バナー表示
   for (byte i=0; i < 8; i++) {
-    for (byte j=0; j < n; j++)
-        bitdisp(buf[j][i],fore, back);
-    Serial.println("");    
+    for (byte j=0; j < n; j++) 
+        for (byte k=0; k<8;k++)
+          Serial.print(bitRead(buf[j][i],7-k) ? fore: back);
+    Serial.println();    
   }
-   Serial.println("");
+  Serial.println();
 }
 
 void setup() {

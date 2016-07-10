@@ -4,7 +4,7 @@
 //
 // 2016/03/16 全角小文字英数字の不具合対応
 // 2016/07/05 getFontData()関数の追加
-//
+// 2016/07/10 getFontTableAddress()関数の追加, fdata[],ftable[]の公開禁止
 
 #ifndef misakiUTF16_h
 #define misakiUTF16_h
@@ -15,8 +15,8 @@
 #define FTABLESIZE     1710      // フォントテーブルデータサイズ
 #define FONT_LEN       8         // 1フォントのバイト数
 
-extern PROGMEM const uint8_t fdata[];						// フォントデータ
-extern PROGMEM const uint16_t ftable [];					// インデックステーブル
+//extern PROGMEM const uint8_t fdata[];						// フォントデータ
+//extern PROGMEM const uint16_t ftable [];					// インデックステーブル
 
 int findcode(uint16_t  ucode) ;								// フォントコード検索
 boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) ;// UTF16に対応する美咲フォントデータ8バイトを取得
@@ -26,5 +26,5 @@ byte charUFT8toUTF16(char *pUTF8, uint16_t *pUTF16);		// UTF8文字(1～3バイ)をUTF
 byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8);			// UTF8文字列をUTF16文字列に変換
 
 char* getFontData(byte* fontdata,char *pUTF8);              // 指定したUTF8文字列の先頭のフォントデータの取得
-
+const uint8_t*  getFontTableAddress();						// フォントデータテーブル先頭アドレス取得
 #endif

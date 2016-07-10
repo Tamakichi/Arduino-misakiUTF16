@@ -1,5 +1,6 @@
 //
 // aitendoドットマトリックスデモ by たま吉さん 2016/03/15
+// 2016/07/10,美咲フォントライブラリ用サンプルに特化のための修正 
 //  
 
 #include <Wire.h>
@@ -26,17 +27,6 @@
 
 // 表示パターン用バッファ(R16xC8)
 uint8_t buf[8];  
-
-// テスト用パターン('さ','い','た','ま')
-uint8_t msg_saitama[4][8] = {
-  {0x08,0x08,0x7E,0x04,0x24,0x40,0x3C,0x00},  // さ
-  {0x00,0x88,0x84,0x82,0x82,0x50,0x20,0x00},  // い
-  {0x20,0xF0,0x2E,0x40,0x48,0x50,0x8E,0x00},  // た
-  {0x08,0x7E,0x08,0x7E,0x08,0x7C,0x7A,0x00}   // ま
-};
-
-// テスト用文字列
-char msg_str[] = "あいうえお、今日は３月１４日です。かんたんなかんじの表示ができます。";
 
 // HT16K33の初期化
 void ht_init() {
@@ -159,82 +149,31 @@ void ht_scrollIn(uint8_t* p, int wt) {
 }
 
 void setup() {
-  Serial.begin(115200);
+   Serial.begin(115200);
    ht_init();
    ht_clear();
-
-#ifdef MY_DEBUG   
-   I2CBusScanTest();
-   dump(256) ;
-#endif
-}
-
-// デモ1 ドット表示チェック
-void demo1() {
-  ht_clear();
-  for (int8_t d = 1; d >= 1; d--) {
-    for (int8_t y = 0; y <8; y++) {
-      for (int8_t x = 0; x <8;  x++) {
-         ht_set_dot(x, y, d);
-         ht_update();
-         delay(75);
-      }
-    } 
-    delay(500);
-  }
-  for (int8_t i = 0; i <8; i++) {
-    scroll();
-    ht_update();
-    delay(100);    
-  }
-}  
-
-// デモ2 パターンを指定座標の表示
-void demo2() {
-   ht_clear();
-   for (uint8_t i = 0; i <4; i++) {
-        ht_clear_buffer();
-        ht_write_at(msg_saitama[i], 0, 0);
-        ht_update();
-        delay(1000);  
-   }
-}
-
-// デモ3 パターンをスクロールイン表示
-void demo3() {
-   ht_clear();
-   for (uint8_t i = 0; i <4; i++) {
-        ht_scrollIn(msg_saitama[i], 150);  
-   }
 }
 
 // デモ4 漢字フォント利用
-void demo4() {
-  uint16_t wstr[256];
+void demo() {
   uint8_t  fnt[8];
   int8_t   len;
+  
+  // テスト用文字列
+  char msg_str[] = "あいうえお、今日は７月１０日です。かんたんなかんじの表示ができます。";
 
-  len = Utf8ToUtf16(wstr, msg_str);  // UTF8文字列をUTF16に変換 
-  Serial.print("len=");
-  Serial.println(len);
+  char *str = msg_str;
   ht_clear();
-   for (uint8_t i = 0; i <len; i++) {
-       Serial.print("code=");
-       Serial.println(wstr[i],HEX); 
-       if (getFontDataByUTF16(fnt, wstr[i]) == false) {
+  while(*str) {
+    if (! (str = getFontData(fnt, str)) )  {
          Serial.println("Error"); 
-       }  
-       ht_scrollIn(fnt, 150);  
-   }
+         break;
+    }
+    ht_scrollIn(fnt, 150);         
+  }
 }
 
 void loop() {  
-   demo4();
-   delay(1000);    
-   demo1();
-   delay(1000); 
-   demo2();
-   delay(1000); 
-   demo3();
+   demo();
    delay(1000); 
 }
