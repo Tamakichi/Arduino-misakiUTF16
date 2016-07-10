@@ -42,7 +42,7 @@ banner
 ![banner](img/sample.png)
 
 misaki_tvout  
-![misaki_tvout](img/misaki_tvout.png)
+![misaki_tvout](img/misaki_tvout.jpg)
 
 aitendo_ht16k33  
-![aitendo_ht16k33](img/aitendo_ht16k33.png)
+![aitendo_ht16k33](img/aitendo_ht16k33.jpg)
