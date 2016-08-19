@@ -5,8 +5,9 @@
 // 2016/03/16 全角小文字英数字の不具合対応
 // 2016/07/05 getFontData()関数の追加
 // 2016/07/10 getFontTableAddress()関数の追加
+// 2016/08/07 getFontData()に半角=>全角変換指定を追加
+// 2016/08/19 charUFT8toUTF16()の引数を変更
 //
-
 
 #include <avr/pgmspace.h>
 #include <arduino.h>
@@ -165,11 +166,11 @@ uint16_t utf16_HantoZen(uint16_t utf16) {
 
 //
 // UTF8文字(1～3バイト)をUTF16に変換する
-// pUTF8(in):   UTF8文字列格納アドレス
 // pUTF16(out): UTF16文字列格納アドレス
+// pUTF8(in):   UTF8文字列格納アドレス
 // 戻り値: 変換処理したUTF8文字バイト数
 
-byte charUFT8toUTF16(char *pUTF8, uint16_t *pUTF16) { 
+byte charUFT8toUTF16(uint16_t *pUTF16, char *pUTF8) { 
  byte bytes[3]; 
  uint16_t unicode16; 
  
@@ -206,7 +207,7 @@ byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
   uint16_t wstr;
 
   while (*pUTF8) {
-    n = charUFT8toUTF16(pUTF8, pUTF16);
+    n = charUFT8toUTF16(pUTF16, pUTF8);
     if (n == 0) 
       return -1;
     
@@ -220,18 +221,22 @@ byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
 // 指定したUTF8文字列の先頭のフォントデータの取得
 //   data(out): フォントデータ格納アドレス
 //   utf8(in) : UTF8文字列
+//   h3z(in)  : true :半角を全角に変換する false: 変換しない 
 //   戻り値   : 次の文字列位置、取得失敗の場合NULLを返す
 //
-char* getFontData(byte* fontdata,char *pUTF8) {
+char* getFontData(byte* fontdata,char *pUTF8, bool h2z) {
   uint16_t utf16;
   uint8_t  n;
   if (pUTF8 == NULL)
     return NULL;
   if (*pUTF8 == 0) 
     return NULL;   
-  n = charUFT8toUTF16(pUTF8, &utf16);
+  n = charUFT8toUTF16(&utf16, pUTF8);
   if (n == 0)
     return NULL;  
+  if (h2z) {
+    utf16 = utf16_HantoZen(utf16);
+  }
   if (false == getFontDataByUTF16(fontdata, utf16) ) 
     return NULL;
   return (pUTF8+n);

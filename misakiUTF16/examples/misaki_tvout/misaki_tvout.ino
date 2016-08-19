@@ -1,6 +1,7 @@
 //
 // TVout with 美咲フォント  
 // 2016/07/10 たま吉さん 
+// 2016/08/19 ライブラリの仕様変更対応
 //
  
 #include <misakiUTF16.h>
@@ -22,7 +23,7 @@ void mprint(uint8_t x, uint8_t y, char* str) {
   int8_t   len;
   
   while(1) {
-    len = charUFT8toUTF16(str, &utf16); // 先頭文字のutf16コードの取得
+    len = charUFT8toUTF16(&utf16, str); // 先頭文字のutf16コードの取得
     if (!len) 
       break;  // コードエラー   
     mputc(x, y, utf16); // 1文字表示
