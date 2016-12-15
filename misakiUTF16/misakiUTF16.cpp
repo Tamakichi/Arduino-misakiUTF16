@@ -7,6 +7,7 @@
 // 2016/07/10 getFontTableAddress()関数の追加
 // 2016/08/07 getFontData()に半角=>全角変換指定を追加
 // 2016/08/19 charUFT8toUTF16()の引数を変更
+// 2016/12/15 findcode()の不具合対応(flg_stopの初期値を-1から0に訂正)
 //
 
 #include <avr/pgmspace.h>
@@ -44,7 +45,7 @@ int findcode(uint16_t  ucode)  {
  int  e_p = FTABLESIZE-1; //  検索範囲下限
  int  pos;
  uint16_t  d = 0;
- int flg_stop = -1;
+ int flg_stop = 0;
  
  while(true) {
     pos = t_p + (e_p - t_p+1)/2;
