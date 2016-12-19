@@ -7,7 +7,9 @@
 // 2016/07/10 getFontTableAddress()関数の追加
 // 2016/08/07 getFontData()に半角=>全角変換指定を追加
 // 2016/08/19 charUFT8toUTF16()の引数を変更
+// 2016/09/30 半角カナ全角変換テーブルをフラッシュメモリ配置に変更
 // 2016/12/15 findcode()の不具合対応(flg_stopの初期値を-1から0に訂正)
+// 2016/12/18 getFontDataByUTF16()で未登録フォント指定時に豆腐(□:0x25a1)を返すように修正
 //
 
 #include <avr/pgmspace.h>
@@ -16,11 +18,11 @@
 #include "misakiUTF16FontData.inc"
 
 // 半角カナ全角変換テーブル
-static uint8_t _hkremap [] = {
+PROGMEM static const uint8_t _hkremap[] = {
    0x02,0x0C,0x0D,0x01,0xFB,0xF2,0xA1,0xA3,0xA5,0xA7,0xA9,0xE3,0xE5,0xE7,0xC3,0xFD,
    0xA2,0xA4,0xA6,0xA8,0xAA,0xAB,0xAD,0xAF,0xB1,0xB3,0xB5,0xB7,0xB9,0xBB,0xBD,0xBF,
    0xC1,0xC4,0xC6,0xC8,0xCA,0xCB,0xCC,0xCD,0xCE,0xCF,0xD2,0xD5,0xD8,0xDB,0xDE,0xDF,
-   0xE0,0xE1,0xE2,0xE4,0xE6,0xE8,0xE9,0xEA,0xEB,0xEC,0xED,0xEF,0xF3,0x9B,0x9C
+   0xE0,0xE1,0xE2,0xE4,0xE6,0xE8,0xE9,0xEA,0xEB,0xEC,0xED,0xEF,0xF3,0x9B,0x9C  
 };
 
 // nバイト読込
@@ -29,8 +31,8 @@ static uint8_t _hkremap [] = {
 // 戻り値  : 読み込んだバイト数
 //
 byte Sequential_read(unsigned long address, byte* rcvdata, byte n)  {
-  for (int i=0; i<n;i++) 
-    rcvdata[i] = pgm_read_byte(address+fdata+i);
+  for (int i = 0; i < n ; i++) 
+    rcvdata[i] = pgm_read_byte(address + fdata + i);
  return n;
 }
 
@@ -48,7 +50,7 @@ int findcode(uint16_t  ucode)  {
  int flg_stop = 0;
  
  while(true) {
-    pos = t_p + (e_p - t_p+1)/2;
+    pos = t_p + ((e_p - t_p+1)>>1);
     d = pgm_read_word (ftable+pos);
    if (d == ucode) {
      // 等しい
@@ -76,17 +78,17 @@ int findcode(uint16_t  ucode)  {
 
 // 半角カナコード判定
 uint8_t isHkana(uint16_t ucode) {
-if (ucode >=0xFF61 && ucode <= 0xFF9F)
-   return 1;
-else 
-  return 0;  
+  if (ucode >=0xFF61 && ucode <= 0xFF9F)
+    return 1;
+  else 
+    return 0;  
 }
 
 // 半角カナ全角変換
 uint16_t hkana2kana(uint16_t ucode) {
-if (isHkana(ucode))
-   return _hkremap[ucode-0xFF61] + 0x3000;
-return ucode;
+  if (isHkana(ucode))
+      return pgm_read_byte(_hkremap + ucode - 0xFF61) + 0x3000;
+  return ucode;
 }
 
 //
@@ -96,27 +98,25 @@ return ucode;
 //   戻り値: true 正常終了１, false 異常終了
 //
 boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
-  uint16_t code;
+  int code;
   unsigned long addr;
   byte n;
- 
+  boolean rc = false;
+
   //utf16 = hkana2kana(utf16);	// 半角カナは全角カナを利用する
 	
   if ( 0 > (code  = findcode(utf16))) { 
     // 該当するフォントが存在しない
-    return false;
+    code = findcode(0x25a1);  // add by Tamakichi,2016/12/18
+    rc = false;  
   }
   
   addr = code;
   addr<<=3;
-  n =  Sequential_read(addr, fontdata, (byte)FONT_LEN);
-  if (n!=8) {
-    return false;
-  }
-  return true;
+  if ( FONT_LEN  == Sequential_read(addr, fontdata, (byte)FONT_LEN) ) 
+    rc =  true;
+  return rc;
 }
-
-
 
 //
 // UTF16半角コードをUTF16全角コードに変換する
@@ -131,7 +131,6 @@ uint16_t utf16_HantoZen(uint16_t utf16) {
     return utf16;
   }
 
-	
   switch(utf16) {
     case 0x005C:
     case 0x00A2:
@@ -228,10 +227,12 @@ byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
 char* getFontData(byte* fontdata,char *pUTF8, bool h2z) {
   uint16_t utf16;
   uint8_t  n;
+
   if (pUTF8 == NULL)
     return NULL;
   if (*pUTF8 == 0) 
     return NULL;   
+
   n = charUFT8toUTF16(&utf16, pUTF8);
   if (n == 0)
     return NULL;  
