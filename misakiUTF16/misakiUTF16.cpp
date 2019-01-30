@@ -108,14 +108,13 @@ uint16_t hkana2kana(uint16_t utf16) {
 boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
   int code;
   unsigned long addr;
-  byte n;
   boolean rc = false;
 
   //utf16 = hkana2kana(utf16);	// 半角カナは全角カナを利用する
 	
   if ( 0 > (code  = findcode(utf16))) { 
     // 該当するフォントが存在しない
-    code = findcode(0x25a1);  // add by Tamakichi,2016/12/18
+    code = findcode(FONT_TOFU);  // add by Tamakichi,2016/12/18
     rc = false;  
   }
   
@@ -212,7 +211,6 @@ byte charUFT8toUTF16(uint16_t *pUTF16, char *pUTF8) {
 int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
   int len = 0;
   int n;
-  uint16_t wstr;
 
   while (*pUTF8) {
     n = charUFT8toUTF16(pUTF16, pUTF8);

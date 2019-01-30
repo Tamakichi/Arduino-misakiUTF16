@@ -18,6 +18,7 @@
 
 #define FTABLESIZE     1710      // フォントテーブルデータサイズ
 #define FONT_LEN       8         // 1フォントのバイト数
+#define FONT_TOFU	   0x25a1    // 豆腐"□"コード
 
 int findcode(uint16_t  ucode) ;								    // フォントコード検索
 boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) ;	// UTF16に対応する美咲フォントデータ8バイトを取得
@@ -28,4 +29,5 @@ int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8);				// UTF8文字列をUTF16�
 
 char* getFontData(byte* fontdata,char *pUTF8,bool h2z=false);   // フォントデータ取得
 const uint8_t*  getFontTableAddress();						    // フォントデータテーブル先頭アドレス取得
+
 #endif
