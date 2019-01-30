@@ -12,6 +12,8 @@
 misakiUTF16	KEYWORD2
 findcode	KEYWORD2
 getFontDataByUTF16	KEYWORD2
+getFontData	KEYWORD2
+utf16_HantoZen	KEYWORD2	
 hkana2kana	KEYWORD2	
 HantoZen	KEYWORD2
 charUFT8toUTF16	KEYWORD2
