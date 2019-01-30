@@ -10,15 +10,23 @@
 // 2016/09/30 半角カナ全角変換テーブルをフラッシュメモリ配置に変更
 // 2016/12/15 findcode()の不具合対応(flg_stopの初期値を-1から0に訂正)
 // 2016/12/18 getFontDataByUTF16()で未登録フォント指定時に豆腐(□:0x25a1)を返すように修正
+// 2019/01/30 _hkremap[]の非AVR系対応
+// 2019/01/30 Utf8ToUtf16()の戻り値の型をbyteからint16_tに変更
 //
 
-#include <avr/pgmspace.h>
 #include <arduino.h>
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#endif  // __AVR__
 #include "misakiUTF16.h"
 #include "misakiUTF16FontData.inc"
 
 // 半角カナ全角変換テーブル
+#ifdef __AVR__
 PROGMEM static const uint8_t _hkremap[] = {
+#else  // __AVR__
+static const uint8_t _hkremap[] = {
+#endif  // __AVR__
    0x02,0x0C,0x0D,0x01,0xFB,0xF2,0xA1,0xA3,0xA5,0xA7,0xA9,0xE3,0xE5,0xE7,0xC3,0xFD,
    0xA2,0xA4,0xA6,0xA8,0xAA,0xAB,0xAD,0xAF,0xB1,0xB3,0xB5,0xB7,0xB9,0xBB,0xBD,0xBF,
    0xC1,0xC4,0xC6,0xC8,0xCA,0xCB,0xCC,0xCD,0xCE,0xCF,0xD2,0xD5,0xD8,0xDB,0xDE,0xDF,
@@ -85,10 +93,10 @@ uint8_t isHkana(uint16_t ucode) {
 }
 
 // 半角カナ全角変換
-uint16_t hkana2kana(uint16_t ucode) {
-  if (isHkana(ucode))
-      return pgm_read_byte(_hkremap + ucode - 0xFF61) + 0x3000;
-  return ucode;
+uint16_t hkana2kana(uint16_t utf16) {
+  if (isHkana(utf16))
+      return pgm_read_byte(_hkremap + utf16 - 0xFF61) + 0x3000;
+  return utf16;
 }
 
 //
@@ -201,7 +209,7 @@ byte charUFT8toUTF16(uint16_t *pUTF16, char *pUTF8) {
 // pUTF8(in):   UTF8文字列
 // 戻り値: UFT16文字長さ (変換失敗時は-1を返す)
 // 
-byte Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
+int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
   int len = 0;
   int n;
   uint16_t wstr;
