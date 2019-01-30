@@ -13,7 +13,6 @@
 #ifndef misakiUTF16_h
 #define misakiUTF16_h
 
-#include <avr/pgmspace.h>
 #include <arduino.h>
 
 #define FTABLESIZE     1710      // フォントテーブルデータサイズ
