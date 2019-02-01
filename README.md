@@ -15,13 +15,23 @@ Arduino Uno(Atmega328)のフラッシュメモリ上に格納しました。
 * 文字コード  UTF16/UTF-8  
 * フォントサイズ  8x8ドッド（美咲フォント)  
 * フォント格納形式  
-![misaki_tvout](img/fontFormat.png)
+![format](img/fontFormat.png)
 
 * 利用可能フォント数  1,710字（Arduinoのフラッシュメモリ上に格納）  
   * 漢字 教育漢字 1,006字(小学校で習う漢字）  
   * 非漢字 全角 546字(全角英数字、ひらがな、かたかな、記号)  
   * 半角フォント  158字(半角記号、半角英数、半角カタカナ）  
   
+
+## インストール方法
+ライブラリ公開先のリンクをクリックし、ページ右上の「Clone or download」を  
+クリックして、さらに「Dounload ZIP」をクリックするとダウンロードできます。
+![download](img/download.png)  
+
+ダウンロード後、ファイルを解凍し、フォルダ内のmisakiUTF16 フォルダを  
+各自のライブラリ配置場所（\libraries）に入れます。  
+
+
 ## API関数
 ### ■ UTF8文字列をUTF16文字列に一括変換  
 【書式】  
@@ -171,6 +181,79 @@ ARM、EPS8266、ESP32環境では通常のメモリアドレスとして参照�
 AVR環境で利用する場合、アドレスはフラッシュメモリ領域となります。  
 領域参照は`pgm_read_byte()`を利用する必要があります。  
 ARM、EPS8266、ESP32環境では通常のメモリアドレスとして参照可能です。  
+
+## ライブラリの使い方
+### 簡単な記述例１（１文字分のフォント取得）
+
+````sample1.ino
+#include <misakiUTF16.h>
+
+void setup() {
+Serial.begin(115200);
+
+char font[8];              // フォント格納バッファ
+getFontData(font, "あ");   // "あ"のフォントを取得
+
+// 取得フォントの確認
+for (uint8_t row=0; row<8; row++) {
+    for (uint8_t col=0; col<8; col++) {
+    Serial.write( (0x80>>col) & font[row] ? '#':' ');
+    }
+    Serial.write('\n');
+}
+}
+
+void loop() {
+
+}
+````
+実行結果  
+![sample1](img/sample1.png)  
+
+フォントデータの取得処理は、`getFontData(font,"あ")` のみで完了です。  
+後半のネストしている`for`文は取得したフォントの確認用です。  
+
+### 簡単な記述例2（文字列分のフォントを繰り返し取得）
+````sample2.ino
+#include <misakiUTF16.h>
+
+void setup() {
+  Serial.begin(115200);
+
+  char font[8];                       // フォント格納バッファ
+  char *str="Abcあいうえお、埼玉";    // 文字列
+
+  char *ptr = str;
+  while(*ptr) {  // 文字列分ループ
+     ptr = getFontData(font, ptr);   // 1文字分のフォント取得
+     if (!ptr)
+        break;                       // エラーの場合は終了
+       
+    // 取得フォントの確認
+    for (uint8_t row=0; row<8; row++) {
+      for (uint8_t col=0; col<8; col++) {
+         Serial.write( (0x80>>col) & font[row] ? '#':' ');
+      }
+      Serial.write('\n');
+    }
+  }
+}
+
+void loop() {
+
+}
+````
+
+実行結果  
+![sample1](img/sample2.png)  
+
+文字列に対しても、`getFontData()`関数で処理できます。  
+UTF8文字コードは可変バイト長なのですが、`getFontData()`関数は  
+次の文字へのポインタを返すので簡単に逐次取得処理を実装出来ます。  
+
+ちなみに、`getFontData()`関数の省略している第3引数にtrueを指定すると  
+半角文字は全角文字に変換してフォントデータを取得します。  
+
 
 ## サンプルスケッチの実行結果
 添付のサンプルスケッチの実行結果を示します。  
