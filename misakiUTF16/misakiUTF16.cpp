@@ -12,14 +12,15 @@
 // 2016/12/18 getFontDataByUTF16()で未登録フォント指定時に豆腐(□:0x25a1)を返すように修正
 // 2019/01/30 _hkremap[]の非AVR系対応
 // 2019/01/30 Utf8ToUtf16()の戻り値の型をbyteからint16_tに変更
-//
+// 2019/07/16 ファイル名misakiUTF16FontData.inc misakiUTF16FontData.hに変更
+// 2019/07/16 1フォントを7バイトに圧縮
 
-#include <arduino.h>
+#include <Arduino.h>
 #ifdef __AVR__
 #include <avr/pgmspace.h>
 #endif  // __AVR__
 #include "misakiUTF16.h"
-#include "misakiUTF16FontData.inc"
+#include "misakiUTF16FontData.h"
 
 // 半角カナ全角変換テーブル
 #ifdef __AVR__
@@ -106,22 +107,19 @@ uint16_t hkana2kana(uint16_t utf16) {
 //   戻り値: true 正常終了１, false 異常終了
 //
 boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
-  int code;
-  unsigned long addr;
+  int16_t code;
   boolean rc = false;
 
-  //utf16 = hkana2kana(utf16);	// 半角カナは全角カナを利用する
-	
   if ( 0 > (code  = findcode(utf16))) { 
     // 該当するフォントが存在しない
     code = findcode(FONT_TOFU);  // add by Tamakichi,2016/12/18
     rc = false;  
   }
   
-  addr = code;
-  addr<<=3;
-  if ( FONT_LEN  == Sequential_read(addr, fontdata, (byte)FONT_LEN) ) 
-    rc =  true;
+  if ( FONT_LEN  == Sequential_read((code)*7, fontdata, (byte)FONT_LEN) ) {
+     rc =  true;
+     fontdata[7]=0; // 8バイト目に0をセット
+  }
   return rc;
 }
 
