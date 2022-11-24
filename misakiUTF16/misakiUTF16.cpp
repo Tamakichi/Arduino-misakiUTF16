@@ -14,6 +14,7 @@
 // 2019/01/30 Utf8ToUtf16()の戻り値の型をbyteからint16_tに変更
 // 2019/07/16 ファイル名misakiUTF16FontData.inc misakiUTF16FontData.hに変更
 // 2019/07/16 1フォントを7バイトに圧縮
+// 2022/11/24 utf16_HantoZen()の半角スペース対応漏れの不具合対応
 
 #include <Arduino.h>
 #ifdef __AVR__
@@ -132,7 +133,7 @@ uint16_t utf16_HantoZen(uint16_t utf16) {
   
   utf16 = hkana2kana(utf16);
 
-  if (utf16 > 0xff || utf16 < 0x21 ) {
+  if (utf16 > 0xff || utf16 < 0x20 ) {
     return utf16;
   }
 
@@ -151,6 +152,7 @@ uint16_t utf16_HantoZen(uint16_t utf16) {
     case 0x00F7: return utf16;
     case 0x00A5: return 0xFFE5;
 
+    case 0x0020: return 0x3000;
     case 0x0021: return 0xFF01;
     case 0x0022: return 0x201D; 
     case 0x0023: return 0xFF03;
