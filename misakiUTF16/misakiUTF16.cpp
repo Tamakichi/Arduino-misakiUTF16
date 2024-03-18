@@ -15,6 +15,7 @@
 // 2019/07/16 ファイル名misakiUTF16FontData.inc misakiUTF16FontData.hに変更
 // 2019/07/16 1フォントを7バイトに圧縮
 // 2022/11/24 utf16_HantoZen()の半角スペース対応漏れの不具合対応
+// 2024/03/15 isBasicLatin(),isLatinSupple(),LatenS2Zen(),isZenkaku()の追加
 
 #include <Arduino.h>
 #ifdef __AVR__
@@ -29,10 +30,14 @@ PROGMEM static const uint8_t _hkremap[] = {
 #else  // __AVR__
 static const uint8_t _hkremap[] = {
 #endif  // __AVR__
-   0x02,0x0C,0x0D,0x01,0xFB,0xF2,0xA1,0xA3,0xA5,0xA7,0xA9,0xE3,0xE5,0xE7,0xC3,0xFD,
-   0xA2,0xA4,0xA6,0xA8,0xAA,0xAB,0xAD,0xAF,0xB1,0xB3,0xB5,0xB7,0xB9,0xBB,0xBD,0xBF,
-   0xC1,0xC4,0xC6,0xC8,0xCA,0xCB,0xCC,0xCD,0xCE,0xCF,0xD2,0xD5,0xD8,0xDB,0xDE,0xDF,
-   0xE0,0xE1,0xE2,0xE4,0xE6,0xE8,0xE9,0xEA,0xEB,0xEC,0xED,0xEF,0xF3,0x9B,0x9C  
+  0x02,0x0c,0x0d,0x01,0xfb,0xf2,0xa1,0xa3,
+  0xa5,0xa7,0xa9,0xe3,0xe5,0xe7,0xc3,0xfc,
+  0xa2,0xa4,0xa6,0xa8,0xaa,0xab,0xad,0xaf,
+  0xb1,0xb3,0xb5,0xb7,0xb9,0xbb,0xbd,0xbf,
+  0xc1,0xc4,0xc6,0xc8,0xca,0xcb,0xcc,0xcd,
+  0xce,0xcf,0xd2,0xd5,0xd8,0xdb,0xde,0xdf,
+  0xe0,0xe1,0xe2,0xe4,0xe6,0xe8,0xe9,0xea,
+  0xeb,0xec,0xed,0xef,0xf3,0x9b,0x9c,
 };
 
 // nバイト読込
@@ -52,7 +57,7 @@ byte Sequential_read(unsigned long address, byte* rcvdata, byte n)  {
 // 戻り値    該当フォントがある場合 フォントコード(0-FTABLESIZE)
 //           該当フォントが無い場合 -1
 
-int findcode(uint16_t  ucode)  {
+int findcode(uint16_t ucode)  {
  int  t_p = 0;            //　検索範囲上限
  int  e_p = FTABLESIZE-1; //  検索範囲下限
  int  pos;
@@ -86,19 +91,53 @@ int findcode(uint16_t  ucode)  {
  return pos;    
 }
 
+// 基本ラテン文字判定
+//    指定した文字コードが0x20～0x7eの場合true、そうでない場合falseを返す
+//    引数 ucode: UTF-16 コード
+boolean isBasicLatin(uint16_t ucode) {
+    return (ucode >=0x20) && (ucode <= 0x7e);
+}
+
+// ラテン1補助判定
+//    指定した文字コードが0x20～0x7eの場合true、そうでない場合falseを返す
+//    引数 ucode: UTF-16 コード
+boolean isLatinSupple(uint16_t ucode) {
+    return (ucode >=0xa1) && (ucode <= 0xff);
+}
+
 // 半角カナコード判定
-uint8_t isHkana(uint16_t ucode) {
-  if (ucode >=0xFF61 && ucode <= 0xFF9F)
-    return 1;
-  else 
-    return 0;  
+//    引数 ucode: UTF-16 コード
+boolean isHkana(uint16_t ucode) {
+  return (ucode >=0xFF61) && (ucode <= 0xFF9F);
 }
 
 // 半角カナ全角変換
-uint16_t hkana2kana(uint16_t utf16) {
-  if (isHkana(utf16))
-      return pgm_read_byte(_hkremap + utf16 - 0xFF61) + 0x3000;
-  return utf16;
+//    引数 ucode: UTF-16 コード
+uint16_t hkana2kana(uint16_t ucode) {
+  if (isHkana(ucode))
+      return pgm_read_byte(_hkremap + ucode - 0xFF61) + 0x3000;
+  return ucode;
+}
+
+// 半角ラテン1補助全角文字変換(美咲フォント用)  
+//    指定した半角ラテン1補助文字に対応する全角文字コードを返す
+//    引数 ucode: UTF-16 コード
+//    戻り値： 全角カタカナコード（半角ラテン1補助文字コードでない場合はそのまま返す）
+//
+//    ※本関数は利用しているフォントに依存する('¢', '£', '¥', '¦', '¬', '¯')
+//
+uint16_t LatenS2Zen(uint16_t ucode) {
+  uint16_t c = 0;
+  switch (ucode) {
+    case 0xa2: c = 0xffe0; break; // '¢'
+    case 0xa3: c = 0xffe1; break; // '£'
+    case 0xa5: c = 0xffe5; break; // '¥'
+    case 0xa6: c = 0xffe4; break; // '¦' 
+    case 0xac: c = 0xffe2; break; // '¬'
+    case 0xaf: c = 0xffe3; break; // '¯'
+    default:   c = ucode;  break;
+  }
+  return c;
 }
 
 //
@@ -130,45 +169,34 @@ boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
 //   utf16(in): UTF16文字コード
 //   戻り値: 変換コード
 uint16_t utf16_HantoZen(uint16_t utf16) {
-  
-  utf16 = hkana2kana(utf16);
-
-  if (utf16 > 0xff || utf16 < 0x20 ) {
+    if (utf16 == 0x20) {               // 全角スペース文字
+      return 0x3000;
+    } else if(isBasicLatin(utf16)) {   // 基本ラテン文字
+      return utf16 - 0x20 + 0xff00;
+    } else if (isLatinSupple(utf16)) { // ラテン1補助
+      return LatenS2Zen(utf16);
+    } else if(isHkana(utf16)) {        // 半角カタカナ
+      return hkana2kana(utf16);
+    }
     return utf16;
-  }
+}
 
-  switch(utf16) {
-    case 0x005C:
-    case 0x00A2:
-    case 0x00A3:
-    case 0x00A7:
-    case 0x00A8:
-    case 0x00AC:
-    case 0x00B0:
-    case 0x00B1:
-    case 0x00B4:
-    case 0x00B6:
-    case 0x00D7:
-    case 0x00F7: return utf16;
-    case 0x00A5: return 0xFFE5;
-
-    case 0x0020: return 0x3000;
-    case 0x0021: return 0xFF01;
-    case 0x0022: return 0x201D; 
-    case 0x0023: return 0xFF03;
-    case 0x0024: return 0xFF04;
-    case 0x0025: return 0xFF05;
-    case 0x0026: return 0xFF06;
-    case 0x0027: return 0x2019;
-    case 0x0028: return 0xFF08;
-    case 0x0029: return 0xFF09;
-    case 0x002A: return 0xFF0A;
-    case 0x002B: return 0xFF0B;
-    case 0x002C: return 0xFF0C;
-    case 0x002D: return 0x2212;
-    case 0x002E: return 0xFF0E;    
-  }  
-   return  utf16 - 0x2F +  0xFF0F;     
+/// 全角・半角判定
+///
+///  引数   ucode UTF-16 コード
+///  戻り値: 半角幅 False、全角幅 True
+boolean isZenkaku(uint16_t ucode) {
+    if (isBasicLatin(ucode))                  // 基本ラテン文字
+        return false;
+    else if (isLatinSupple(ucode))            // ラテン1補助
+        return (LatenS2Zen(ucode) == ucode) ? false : true;
+    else if (isHkana(ucode))                  // 半角カタカナ
+        return false;
+    else if (ucode < 0x20)                    // C0
+        return false;        
+    else if ((ucode>=0x7f) && (ucode<=0xa0))  // C1
+        return false;
+    return true;                              // その他
 }
 
 //

@@ -53,7 +53,7 @@ void setup() {
     Serial.begin(115200);
 
     banner("埼玉☆さいたま ｻｲﾀﾏ!", "##", "  ");
-    banner("misakiUTF16ﾗｲﾌﾞﾗﾘ"," XX", "  ");    
+    banner("misakiUTF16ﾗｲﾌﾞﾗﾘ","%%", "  ");    
     banner("あいうえお", "##", "  ");
     banner("みさきフォント", "@", " ");    
 
