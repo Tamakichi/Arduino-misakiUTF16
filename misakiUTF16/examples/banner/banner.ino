@@ -51,12 +51,10 @@ void banner(char* pUTF8, char* fore, char* back) {
 
 void setup() {
     Serial.begin(115200);
-
     banner("埼玉☆さいたま ｻｲﾀﾏ!", "##", "  ");
-    banner("misakiUTF16ﾗｲﾌﾞﾗﾘ","%%", "  ");    
+    banner("misakiUTF16ﾗｲﾌﾞﾗﾘ","%%", "  ");
     banner("あいうえお", "##", "  ");
-    banner("みさきフォント", "@", " ");    
-
+    banner("みさきフォント", "@", " ");
 }
 
 void loop() {

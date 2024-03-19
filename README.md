@@ -337,14 +337,26 @@ UTF8文字コードは可変バイト長なのですが、`getFontData()`関数�
 添付のサンプルスケッチの実行結果を示します。  
 スケッチの処理内容については、各スケッチを直接参照下さい。  
 
-banner  
+■ banner  
 ![banner](img/banner.png)
 
-misaki_tvout  
+コンソール(シリアルポート)にキャラクターを使ったバナー表示をします。  
+半角文字は横幅4ドットで表示しています。  
+
+■ misaki_tvout(TVoutライブラリ利用)  
 ![misaki_tvout](img/misaki_tvout.jpg)
 
-aitendo_ht16k33  
+Arduino uno 3(atmega328)用のTVoutライブラリを利用してビデオ出力を行うデモです。  
+
+■ aitendo_ht16k33  
 ![aitendo_ht16k33](img/aitendo_ht16k33.jpg)
+
+aitendoで販売しているLEDドライバHT16K33を利用したLEDドットマトリックス表示を行うデモです。  
+
+■ led_matrix_scroll  
+![led_matrix_scroll](img/led_matrix_scroll.jpg)
+
+Arduino Uno R4 WiFiボードに搭載しているLEDマトリックスにて文字標示を行うデモです。
 
 ## ライセンスについて
 

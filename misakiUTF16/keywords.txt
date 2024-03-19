@@ -22,7 +22,7 @@ getFontTableAddress	KEYWORD2
 isZenkaku	KEYWORD2
 LatenS2Zen	KEYWORD2
 isBasicLatin	KEYWORD2
-isLatinSupple	
+isLatinSupple	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
