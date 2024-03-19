@@ -356,7 +356,7 @@ aitendoで販売しているLEDドライバHT16K33を利用したLEDドットマ
 ■ led_matrix_scroll  
 ![led_matrix_scroll](img/led_matrix_scroll.jpg)
 
-Arduino Uno R4 WiFiボードに搭載しているLEDマトリックスにて文字標示を行うデモです。
+Arduino Uno R4 WiFiボードに搭載しているLEDマトリックスにて文字表示を行うデモです。
 
 ## ライセンスについて
 
