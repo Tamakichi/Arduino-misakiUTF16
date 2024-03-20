@@ -19,6 +19,10 @@ HantoZen	KEYWORD2
 charUFT8toUTF16	KEYWORD2
 Utf8ToUtf16	KEYWORD2
 getFontTableAddress	KEYWORD2
+isZenkaku	KEYWORD2
+LatenS2Zen	KEYWORD2
+isBasicLatin	KEYWORD2
+isLatinSupple	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
