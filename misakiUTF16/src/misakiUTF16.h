@@ -10,7 +10,6 @@
 // 2019/01/30 Utf8ToUtf16()の戻り値の型をbyteからint16_tに変更
 // 2019/07/16 FTABLESIZEを実配列から算出に変更
 // 2024/03/15 isBasicLatin(),isLatinSupple(),LatenS2Zen(),isZenkaku()の追加
-// 2024/03/15 isBasicLatin(),isLatinSupple(),LatenS2Zen(),isZenkaku()の追加
 //
 
 #ifndef misakiUTF16_h
@@ -32,10 +31,6 @@ int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8);           // UTF8文字列�
 char* getFontData(byte* fontdata,char *pUTF8,bool h2z=false); // フォントデータ取得
 const uint8_t*  getFontTableAddress();                        // フォントデータテーブル先頭アドレス取得
 
-boolean isBasicLatin(uint16_t ucode);                         // 基本ラテン文字判定
-boolean isLatinSupple(uint16_t ucode);                        // ラテン1補助判定
-uint16_t LatenS2Zen(uint16_t ucode);                          // 半角ラテン1補助全角文字変換
-boolean isZenkaku(uint16_t ucode);                            // 全角・半角判定
 boolean isBasicLatin(uint16_t ucode);                         // 基本ラテン文字判定
 boolean isLatinSupple(uint16_t ucode);                        // ラテン1補助判定
 uint16_t LatenS2Zen(uint16_t ucode);                          // 半角ラテン1補助全角文字変換
