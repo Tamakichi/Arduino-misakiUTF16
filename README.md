@@ -4,6 +4,12 @@ Arduino用 美咲フォントライブラリ 教育漢字・内部フラッシ�
 
 ## 更新情報
 
+2025/11/08 更新 v1.3  
+・関数名の Typo（charUFT8toUTF16 → charUTF8toUTF16）対応  
+・1バイトデータの扱いのデータ型がbyte、char、uint8_tと入り乱れていた.uint8_tに統一  
+・エラー対策、処理の見直し  
+・コメント、説明文の追記・修正  
+
 2024/03/18 更新 v1.2  
 ・美咲フォントの最新版 2021-05-05(美咲ゴシック第2)利用に変更  
 　(以前は2012-06-03 正式公開初版を利用)  
@@ -25,7 +31,7 @@ Arduino Uno(Atmega328)のフラッシュメモリ上に格納しました。
 
 ### 収録文字  
 
-````収録文字
+````txt
 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghi
 jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρ
 στυφχψωЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё
@@ -78,7 +84,10 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
   * 漢字 教育漢字 1,006字(小学校で習う漢字)  
   * 非漢字 全角 546字(全角英数字、ひらがな、かたかな、記号)  
   * 半角フォント  158字(半角記号、半角英数、半角カタカナ)  
-  
+
+* 制約事項
+  * UTF-8文字は1～3バイト文字にのみ対応、4バイト文字は非対応  
+
 ## インストール方法
 
 ライブラリ公開先のリンクをクリックし、ページ右上の「Clone or download」を  
@@ -93,7 +102,7 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
 ### ■ UTF8文字列をUTF16文字列に一括変換  
 
 【書式】  
-`int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8)`  
+`int16_t Utf8ToUtf16(uint16_t* pUTF16, uint8_t *pUTF8))`  
 
 【引数】  
 `pUTF16`: UTF16文字列格納アドレス(OUT)  
@@ -113,7 +122,7 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
 ### ■ 先頭UTF8文字(1～3バイト)をUTF16(2バイト)に変換  
 
 【書式】  
-`byte charUFT8toUTF16(char *pUTF8, uint16_t *pUTF16)`
+`uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8)`
 
 【引数】  
 `pUTF16`: UTF16文字格納アドレス(OUT)  
@@ -126,7 +135,10 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
 `pUTF8`のアドレスに格納されている先頭の１文字UTF8コード文字列を、  
 UTF16コードに変換し、 `pUTF16`のアドレスに格納します。  
 次文字を処理する場合は、戻り値のバイト数分を`pUTF8`に加算して、  
-再度`charUFT8toUTF16()`を呼び出します。
+再度`charUFT8toUTF16()`を呼び出します。  
+
+※本関数は4バイト文字には対応していません。  
+未対応文字を扱う可能性がある場合は、戻り値を確認し適切な処理を行って下さい。
 
 ### ■ UTF16半角コード(記号英数字、カナ)をUTF16全角コードに変換  
 
@@ -177,7 +189,7 @@ false：指定した文字コードが半角幅フォントである
 ### ■ UTF16文字に対応するフォントデータ(8バイト)取得  
 
 【書式】  
-`boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16)`  
+`boolean getFontDataByUTF16(uint8_t* fontdata, uint16_t utf16)`  
 
 【引数】  
 `fontdata`: フォントデータ格納アドレス(OUT)  
@@ -198,7 +210,7 @@ false：指定した文字コードが半角幅フォントである
 ### ■ UTF8文字列に対応する先頭文字のフォントデータ取得  
 
 【書式】  
-`char* getFontData(byte* fontdata, char *pUTF8,bool h2z=false)`  
+`uint8_t* getFontData(uint8_t* fontdata, uint8_t *pUTF8, boolean h2z=false)`  
 
 【引数】  
 `fontdata`: フォントデータ格納アドレス(OUT)  
@@ -239,7 +251,7 @@ ARM、EPS8266、ESP32環境では通常のメモリアドレスとして参照�
 ### ■ フォントの検索  
 
 【書式】  
-`int findcode(uint16_t  ucode)`  
+`int16_t findcode(uint16_t  ucode)`  
 
 【引数】  
 `ucode`: UTF16文字コード(IN)  
@@ -261,7 +273,7 @@ ARM、EPS8266、ESP32環境では通常のメモリアドレスとして参照�
 
 ### 簡単な記述例１（１文字分のフォント取得）
 
-````sample1.ino
+````cpp
 #include <misakiUTF16.h>
 
 void setup() {
@@ -292,7 +304,7 @@ void loop() {
 
 ### 簡単な記述例2（文字列分のフォントを繰り返し取得）
 
-````sample2.ino
+````cpp
 #include <misakiUTF16.h>
 
 void setup() {
@@ -323,7 +335,7 @@ void loop() {
 ````
 
 実行結果  
-![sample1](img/sample2.png)  
+![sample2](img/sample2.png)  
 
 文字列に対しても、`getFontData()`関数で処理できます。  
 UTF8文字コードは可変バイト長なのですが、`getFontData()`関数は  

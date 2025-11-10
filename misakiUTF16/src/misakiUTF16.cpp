@@ -16,6 +16,7 @@
 // 2019/07/16 1フォントを7バイトに圧縮
 // 2022/11/24 utf16_HantoZen()の半角スペース対応漏れの不具合対応
 // 2024/03/15 isBasicLatin(),isLatinSupple(),LatenS2Zen(),isZenkaku()の追加
+// 2025/11/06 符号なし1バイトデータの型をuint8_tに統一、処理の見直し
 
 #include <Arduino.h>
 #ifdef __AVR__
@@ -40,83 +41,93 @@ static const uint8_t _hkremap[] = {
   0xeb,0xec,0xed,0xef,0xf3,0x9b,0x9c,
 };
 
+// PROGMEM 読み出しラッパー
+#ifdef __AVR__
+static inline void progmem_read_block(void* dest, const void* src, size_t n) {
+    memcpy_P(dest, src, n);
+}
+
+static inline uint16_t progmem_read_word(const uint16_t* addr) {
+    return pgm_read_word(addr);
+}
+
+static inline uint8_t progmem_read_byte(const uint8_t* addr) {
+    return pgm_read_byte(addr);
+}
+
+#else
+static inline void progmem_read_block(void* dest, const void* src, size_t n) {
+    memcpy(dest, src, n);
+}
+
+static inline uint16_t progmem_read_word(const uint16_t* addr) {
+    return *addr;
+}
+
+static inline uint8_t progmem_read_byte(const uint8_t* addr) {
+    return *addr;
+}
+#endif // __AVR__
+
 // nバイト読込
-// rcvdata: 読込データ格納アドレス
-// n      : 読込みデータ数
-// 戻り値  : 読み込んだバイト数
+//    引数 address: 読み出し相対位置 
+//         rcvdata: 読込データ格納アドレス
+//         n      : 読込みデータ数
+//    戻り値  : 読み込んだバイト数
 //
-byte Sequential_read(unsigned long address, byte* rcvdata, byte n)  {
-  for (int i = 0; i < n ; i++) 
-    rcvdata[i] = pgm_read_byte(address + fdata + i);
- return n;
+static inline size_t Sequential_read(unsigned long address, uint8_t* rcvdata, size_t n) {
+    progmem_read_block(rcvdata, (uint8_t*)(fdata + address), n);  // fdata はフォントデータの先頭
+    return n;
 }
 
 // フォントコード検索
-// (コードでROM上のテーブルを参照し、フォントコードを取得する)
-// ucode(in) UTF-16 コード
-// 戻り値    該当フォントがある場合 フォントコード(0-FTABLESIZE)
-//           該当フォントが無い場合 -1
+//    フラッシュメモリ上のテーブルを参照し、フォントコードを取得する
+//    引数  ucode(in) UTF-16 コード
+//    戻り値   該当フォントがある場合 フォントコード(0-FTABLESIZE)、該当フォントが無い場合 -1
+//
 
-int findcode(uint16_t ucode)  {
- int  t_p = 0;            //　検索範囲上限
- int  e_p = FTABLESIZE-1; //  検索範囲下限
- int  pos;
- uint16_t  d = 0;
- int flg_stop = 0;
- 
- while(true) {
-    pos = t_p + ((e_p - t_p+1)>>1);
-    d = pgm_read_word (ftable+pos);
-   if (d == ucode) {
-     // 等しい
-     flg_stop = 1;
-     break;
-   } else if (ucode > d) {
-     // 大きい
-     t_p = pos + 1;
-     if (t_p > e_p) {
-       break;
-     }
-   } else {
-     // 小さい
-    e_p = pos -1;
-    if (e_p < t_p) 
-      break;
-   }
- } 
-
- if (!flg_stop) {
+int16_t findcode(uint16_t ucode) {
+    int low = 0;
+    int high = FTABLESIZE - 1;
+    while (low <= high) {
+        int mid = low + ((high - low) >> 1);
+        uint16_t d = progmem_read_word((const uint16_t*)(ftable + mid));
+        if (d == ucode)
+            return mid;
+        if (d < ucode)
+            low = mid + 1;
+        else 
+            high = mid - 1;
+    }
     return -1;
- }
- return pos;    
 }
 
 // 基本ラテン文字判定
 //    指定した文字コードが0x20～0x7eの場合true、そうでない場合falseを返す
 //    引数 ucode: UTF-16 コード
-boolean isBasicLatin(uint16_t ucode) {
+inline boolean isBasicLatin(uint16_t ucode) {
     return (ucode >=0x20) && (ucode <= 0x7e);
 }
 
 // ラテン1補助判定
 //    指定した文字コードが0x20～0x7eの場合true、そうでない場合falseを返す
 //    引数 ucode: UTF-16 コード
-boolean isLatinSupple(uint16_t ucode) {
+inline boolean isLatinSupple(uint16_t ucode) {
     return (ucode >=0xa1) && (ucode <= 0xff);
 }
 
 // 半角カナコード判定
 //    引数 ucode: UTF-16 コード
-boolean isHkana(uint16_t ucode) {
-  return (ucode >=0xFF61) && (ucode <= 0xFF9F);
+inline boolean isHkana(uint16_t ucode) {
+    return (ucode >=0xFF61) && (ucode <= 0xFF9F);
 }
 
 // 半角カナ全角変換
 //    引数 ucode: UTF-16 コード
 uint16_t hkana2kana(uint16_t ucode) {
-  if (isHkana(ucode))
-      return pgm_read_byte(_hkremap + ucode - 0xFF61) + 0x3000;
-  return ucode;
+    if (isHkana(ucode))
+    return progmem_read_byte(_hkremap + ucode - 0xFF61) + 0x3000;
+    return ucode;
 }
 
 // 半角ラテン1補助全角文字変換(美咲フォント用)  
@@ -127,40 +138,38 @@ uint16_t hkana2kana(uint16_t ucode) {
 //    ※本関数は利用しているフォントに依存する('¢', '£', '¥', '¦', '¬', '¯')
 //
 uint16_t LatenS2Zen(uint16_t ucode) {
-  uint16_t c = 0;
-  switch (ucode) {
-    case 0xa2: c = 0xffe0; break; // '¢'
-    case 0xa3: c = 0xffe1; break; // '£'
-    case 0xa5: c = 0xffe5; break; // '¥'
-    case 0xa6: c = 0xffe4; break; // '¦' 
-    case 0xac: c = 0xffe2; break; // '¬'
-    case 0xaf: c = 0xffe3; break; // '¯'
-    default:   c = ucode;  break;
-  }
-  return c;
+    uint16_t c = 0;
+    switch (ucode) {
+        case 0xa2: c = 0xffe0; break; // '¢'
+        case 0xa3: c = 0xffe1; break; // '£'
+        case 0xa5: c = 0xffe5; break; // '¥'
+        case 0xa6: c = 0xffe4; break; // '¦' 
+        case 0xac: c = 0xffe2; break; // '¬'
+        case 0xaf: c = 0xffe3; break; // '¯'
+        default:   c = ucode;  break;
+    }
+    return c;
 }
 
 //
 // UTF16に対応する美咲フォントデータ8バイトを取得する
-//   data(out): フォントデータ格納アドレス
-//   utf16(in): UTF16コード
+//   fontdata(out): フォントデータ格納アドレス
+//   utf16(in):     UTF16コード
 //   戻り値: true 正常終了１, false 異常終了
 //
-boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
-  int16_t code;
-  boolean rc = false;
+boolean getFontDataByUTF16(uint8_t* fontdata, uint16_t utf16) {
+    int16_t code = findcode(utf16);
+    if (code < 0)
+        if ( (code = findcode(FONT_TOFU)) < 0 )  // 該当フォントデータがない場合は豆腐に置き換える
+            return false;
 
-  if ( 0 > (code  = findcode(utf16))) { 
-    // 該当するフォントが存在しない
-    code = findcode(FONT_TOFU);  // add by Tamakichi,2016/12/18
-    rc = false;  
-  }
-  
-  if ( FONT_LEN  == Sequential_read((code)*7, fontdata, (byte)FONT_LEN) ) {
-     rc =  true;
-     fontdata[7]=0; // 8バイト目に0をセット
-  }
-  return rc;
+    // フォントは 1 フォント = 7 バイト (FONT_LEN)
+    uint32_t addr = (uint32_t)code * (uint32_t)FONT_LEN;
+    if (Sequential_read(addr, fontdata, FONT_LEN) != FONT_LEN) {
+        return false;
+    }
+    fontdata[7] = 0;  // 8バイト空白行を補完
+    return true;
 }
 
 //
@@ -169,14 +178,14 @@ boolean getFontDataByUTF16(byte* fontdata, uint16_t utf16) {
 //   utf16(in): UTF16文字コード
 //   戻り値: 変換コード
 uint16_t utf16_HantoZen(uint16_t utf16) {
-    if (utf16 == 0x20) {               // 全角スペース文字
-      return 0x3000;
-    } else if(isBasicLatin(utf16)) {   // 基本ラテン文字
-      return utf16 - 0x20 + 0xff00;
-    } else if (isLatinSupple(utf16)) { // ラテン1補助
-      return LatenS2Zen(utf16);
-    } else if(isHkana(utf16)) {        // 半角カタカナ
-      return hkana2kana(utf16);
+    if (utf16 == 0x20) {                 // 全角スペース文字
+        return 0x3000;
+    } else if( isBasicLatin(utf16) ) {   // 基本ラテン文字
+        return utf16 - 0x20 + 0xff00;
+    } else if ( isLatinSupple(utf16) ) { // ラテン1補助
+        return LatenS2Zen(utf16);
+    } else if( isHkana(utf16))  {        // 半角カタカナ
+        return hkana2kana(utf16);
     }
     return utf16;
 }
@@ -200,86 +209,73 @@ boolean isZenkaku(uint16_t ucode) {
 }
 
 //
-// UTF8文字(1～3バイト)をUTF16に変換する
-// pUTF16(out): UTF16文字列格納アドレス
-// pUTF8(in):   UTF8文字列格納アドレス
-// 戻り値: 変換処理したUTF8文字バイト数
-
-byte charUFT8toUTF16(uint16_t *pUTF16, char *pUTF8) { 
- byte bytes[3]; 
- uint16_t unicode16; 
- 
- bytes[0] = *pUTF8++; 
- if( bytes[0] < 0x80 ) { 
-   *pUTF16 = bytes[0]; 
-   return(1); 
- } 
- bytes[1] = *pUTF8++; 
- if( bytes[0] >= 0xC0 && bytes[0] < 0xE0 )  { 
-   unicode16 = 0x1f&bytes[0]; 
-   *pUTF16 = (unicode16<<6)+(0x3f&bytes[1]); 
-   return(2); 
- } 
- 
- bytes[2] = *pUTF8++; 
- if( bytes[0] >= 0xE0 && bytes[0] < 0xF0 ) { 
-   unicode16 = 0x0f&bytes[0]; 
-   unicode16 = (unicode16<<6)+(0x3f&bytes[1]); 
-   *pUTF16 = (unicode16<<6)+(0x3f&bytes[2]); 
-   return(3); 
- } else 
- return(0); 
-} 
+// UTF8文字(1～3バイト、4バイト文字は非対応)をUTF16に変換する
+//     引数 pUTF16(out): UTF16文字列格納アドレス
+//          pUTF8(in):   UTF8文字列格納アドレス
+//     戻り値: 変換処理したUTF8文字バイト数
+uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8) {
+    uint8_t b0 = pUTF8[0];
+    if (b0 < 0x80) {
+        *pUTF16 = b0;
+        return 1;
+    }
+    // 2バイトシーケンス
+    if ((b0 & 0xE0) == 0xC0) {
+        uint8_t b1 = pUTF8[1];
+        if ((b1 & 0xC0) != 0x80) return 0;
+        *pUTF16 = (uint16_t)(((b0 & 0x1F) << 6) | (b1 & 0x3F));
+        return 2;
+    }
+    // 3バイトシーケンス
+    if ((b0 & 0xF0) == 0xE0) {
+        uint8_t b1 = pUTF8[1], b2 = pUTF8[2];
+        if (((b1 | b2) & 0xC0) != 0x80) return 0;
+        *pUTF16 = (uint16_t)(((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F));
+        return 3;
+    }
+    // 4バイト以上の文字は非対応、0を返す
+    return 0;
+}
 
 // UTF8文字列をUTF16文字列に変換する
-// pUTF16(out): UFT16文字列
-// pUTF8(in):   UTF8文字列
-// 戻り値: UFT16文字長さ (変換失敗時は-1を返す)
-// 
-int16_t Utf8ToUtf16(uint16_t* pUTF16, char *pUTF8) {
-  int len = 0;
-  int n;
-
-  while (*pUTF8) {
-    n = charUFT8toUTF16(pUTF16, pUTF8);
-    if (n == 0) 
-      return -1;
-    
-    pUTF8 += n;
-    len++;
-    pUTF16++;
-  }
-  return len; 
+//     引数 pUTF16(out): UFT16文字列
+//         pUTF8(in):   UTF8文字列
+//     戻り値: UFT16文字長さ (変換失敗時は-1を返す)
+int16_t Utf8ToUtf16(uint16_t* pUTF16, const uint8_t* pUTF8) {
+    int len = 0;
+    const uint8_t* pd = pUTF8;
+    while (*pd) {
+        uint8_t n = charUTF8toUTF16(pUTF16, pd);
+        if (n == 0)
+            return -1;
+        pd += n;
+        pUTF16++;
+        len++;
+    }
+    return len;
 }
 
 // 指定したUTF8文字列の先頭のフォントデータの取得
-//   data(out): フォントデータ格納アドレス
-//   utf8(in) : UTF8文字列
-//   h3z(in)  : true :半角を全角に変換する false: 変換しない 
-//   戻り値   : 次の文字列位置、取得失敗の場合NULLを返す
+//   引数 fontdata(out): フォントデータ格納アドレス
+//        utf8(in)     : UTF8文字列
+//        h3z(in)      : true :半角を全角に変換する false: 変換しない 
+//   戻り値        : 次の文字列位置、取得失敗の場合NULLを返す
 //
-char* getFontData(byte* fontdata,char *pUTF8, bool h2z) {
-  uint16_t utf16;
-  uint8_t  n;
-
-  if (pUTF8 == NULL)
-    return NULL;
-  if (*pUTF8 == 0) 
-    return NULL;   
-
-  n = charUFT8toUTF16(&utf16, pUTF8);
-  if (n == 0)
-    return NULL;  
-  if (h2z) {
-    utf16 = utf16_HantoZen(utf16);
-  }
-  if (false == getFontDataByUTF16(fontdata, utf16) ) 
-    return NULL;
-  return (pUTF8+n);
+uint8_t* getFontData(uint8_t* fontdata, const uint8_t* pUTF8, bool h2z) {
+    if (pUTF8 == NULL || *pUTF8 == 0) return NULL;
+    uint16_t utf16;
+    uint8_t n = charUTF8toUTF16(&utf16, pUTF8);
+    if (n == 0) 
+        return NULL;
+    if (h2z)
+        utf16 = utf16_HantoZen(utf16);
+    if (!getFontDataByUTF16(fontdata, utf16))
+        return NULL;
+    return (uint8_t*)(pUTF8 + n);
 }
 
 // フォントデータテーブル先頭アドレス取得
-// 戻り値 フォントデータテーブル先頭アドレス(PROGMEM上)
+//     戻り値 フォントデータテーブル先頭アドレス(PROGMEM上)
 const uint8_t* getFontTableAddress() {
 	return fdata;
 }
