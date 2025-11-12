@@ -213,7 +213,7 @@ boolean isZenkaku(uint16_t ucode) {
 //     引数 pUTF16(out): UTF16文字列格納アドレス
 //          pUTF8(in):   UTF8文字列格納アドレス
 //     戻り値: 変換処理したUTF8文字バイト数
-uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8) {
+uint8_t charUTF8toUTF16(uint16_t* pUTF16, const char* pUTF8) {
     uint8_t b0 = pUTF8[0];
     if (b0 < 0x80) {
         *pUTF16 = b0;
@@ -241,9 +241,9 @@ uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8) {
 //     引数 pUTF16(out): UFT16文字列
 //         pUTF8(in):   UTF8文字列
 //     戻り値: UFT16文字長さ (変換失敗時は-1を返す)
-int16_t Utf8ToUtf16(uint16_t* pUTF16, const uint8_t* pUTF8) {
+int16_t Utf8ToUtf16(uint16_t* pUTF16, const char* pUTF8) {
     int len = 0;
-    const uint8_t* pd = pUTF8;
+    const char* pd = pUTF8;
     while (*pd) {
         uint8_t n = charUTF8toUTF16(pUTF16, pd);
         if (n == 0)
@@ -257,11 +257,11 @@ int16_t Utf8ToUtf16(uint16_t* pUTF16, const uint8_t* pUTF8) {
 
 // 指定したUTF8文字列の先頭のフォントデータの取得
 //   引数 fontdata(out): フォントデータ格納アドレス
-//        utf8(in)     : UTF8文字列
+//        pUTF8(in)    : UTF8文字列
 //        h3z(in)      : true :半角を全角に変換する false: 変換しない 
 //   戻り値        : 次の文字列位置、取得失敗の場合NULLを返す
 //
-uint8_t* getFontData(uint8_t* fontdata, const uint8_t* pUTF8, bool h2z) {
+char* getFontData(uint8_t* fontdata, const char* pUTF8, boolean h2z) {
     if (pUTF8 == NULL || *pUTF8 == 0) return NULL;
     uint16_t utf16;
     uint8_t n = charUTF8toUTF16(&utf16, pUTF8);
@@ -271,7 +271,7 @@ uint8_t* getFontData(uint8_t* fontdata, const uint8_t* pUTF8, bool h2z) {
         utf16 = utf16_HantoZen(utf16);
     if (!getFontDataByUTF16(fontdata, utf16))
         return NULL;
-    return (uint8_t*)(pUTF8 + n);
+    return (char*)(pUTF8 + n);
 }
 
 // フォントデータテーブル先頭アドレス取得

@@ -16,7 +16,7 @@ getFontData	KEYWORD2
 utf16_HantoZen	KEYWORD2	
 hkana2kana	KEYWORD2	
 HantoZen	KEYWORD2
-charUFT8toUTF16	KEYWORD2
+charUTF8toUTF16	KEYWORD2
 Utf8ToUtf16	KEYWORD2
 getFontTableAddress	KEYWORD2
 isZenkaku	KEYWORD2

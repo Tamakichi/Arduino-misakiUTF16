@@ -2,7 +2,8 @@
 // TVout with 美咲フォント  
 // 2016/07/10 たま吉さん 
 // 2016/08/19 ライブラリの仕様変更対応
-//
+// 2025/11/11 関数名の Typo（charUFT8toUTF16 → charUTF8toUTF16）修正, 半角文字対応
+// 
  
 #include <misakiUTF16.h>
 #include <TVout.h>
@@ -14,16 +15,17 @@ void mputc(uint8_t x, uint8_t y, uint16_t code) {
   int16_t pos; // フォントデータテーブルコード
   if ( (pos = findcode(code)) < 0) 
     return;
-  TV.bitmap(x,y, getFontTableAddress()+pos*8 ,0,8,8); 
+  uint8_t width = isZenkaku(code) ? 8: 4;  // フォント幅の取得
+  TV.bitmap(x,y, getFontTableAddress()+pos*8 ,0, width, 8); 
 }
 
 // 指定位置に文字列表示
-void mprint(uint8_t x, uint8_t y, char* str) {
+void mprint(uint8_t x, uint8_t y, const char* str) {
   uint16_t utf16;
   int8_t   len;
   
   while(1) {
-    len = charUFT8toUTF16(&utf16, str); // 先頭文字のutf16コードの取得
+    len = charUTF8toUTF16(&utf16, str); // 先頭文字のutf16コードの取得
     if (!len) 
       break;  // コードエラー   
     mputc(x, y, utf16); // 1文字表示

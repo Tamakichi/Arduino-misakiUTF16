@@ -102,7 +102,7 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
 ### ■ UTF8文字列をUTF16文字列に一括変換  
 
 【書式】  
-`int16_t Utf8ToUtf16(uint16_t* pUTF16, uint8_t *pUTF8))`  
+`int16_t Utf8ToUtf16(uint16_t* pUTF16, const char *pUTF8))`  
 
 【引数】  
 `pUTF16`: UTF16文字列格納アドレス(OUT)  
@@ -116,13 +116,13 @@ jklmnopqrstuvwxyz{|}¢£¥§¨¬°±´¶×÷ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣ
 `pUTF16`のアドレスに格納します。  
 半角文字を含め、すべての文字は2バイトコードであるUTF16に変換されますので、  
 `pUTF16`には十分な領域を確保してください。  
-変換したUTF16文字領域を確保しない、１文字単位で変換を行う`charUFT8toUTF16()`、  
+変換したUTF16文字領域を確保しない、１文字単位で変換を行う`charUTF8toUTF16()`、  
 1文字単位でフォントデータを取得する`getFontData()`での代替えも可能です。
   
 ### ■ 先頭UTF8文字(1～3バイト)をUTF16(2バイト)に変換  
 
 【書式】  
-`uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8)`
+`uint8_t charUTF8toUTF16(uint16_t* pUTF16, const char* pUTF8)`
 
 【引数】  
 `pUTF16`: UTF16文字格納アドレス(OUT)  
@@ -210,7 +210,7 @@ false：指定した文字コードが半角幅フォントである
 ### ■ UTF8文字列に対応する先頭文字のフォントデータ取得  
 
 【書式】  
-`uint8_t* getFontData(uint8_t* fontdata, uint8_t *pUTF8, boolean h2z=false)`  
+`char* getFontData(uint8_t* fontdata, const char *pUTF8, boolean h2z=false)`  
 
 【引数】  
 `fontdata`: フォントデータ格納アドレス(OUT)  

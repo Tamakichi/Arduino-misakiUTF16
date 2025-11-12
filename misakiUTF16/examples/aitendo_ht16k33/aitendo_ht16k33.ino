@@ -1,10 +1,11 @@
 //
 // aitendoドットマトリックスデモ by たま吉さん 2016/03/15
 // 2016/07/10,美咲フォントライブラリ用サンプルに特化のための修正 
+// 2025/11/12,AVR系以外のボード対応 
 //  
 
 #include <Wire.h>
-#include <misakiUTF16.h> 
+#include "misakiUTF16.h" 
 
 // アドレス
 #define HT_I2C_ADDRESS 0x70
@@ -19,11 +20,11 @@
 #define HT_SYSSET_OSC_ON  1
 
 // Display setup 設定値
-#define HT_BLINK_DISPLAY_ON B00000001
-#define HT_BLINK_OFF        B00000000
-#define HT_BLINK_2HZ        B00000010
-#define HT_BLINK_1HZ        B00000100
-#define HT_BLINK_05HZ       B00000110
+#define HT_BLINK_DISPLAY_ON 0b00000001
+#define HT_BLINK_OFF        0b00000000
+#define HT_BLINK_2HZ        0b00000010
+#define HT_BLINK_1HZ        0b00000100
+#define HT_BLINK_05HZ       0b00000110
 
 // 表示パターン用バッファ(R16xC8)
 uint8_t buf[8];  
@@ -157,12 +158,11 @@ void setup() {
 // デモ4 漢字フォント利用
 void demo() {
   uint8_t  fnt[8];
-  int8_t   len;
-  
+
   // テスト用文字列
   char msg_str[] = "あいうえお、今日は７月１０日です。かんたんなかんじの表示ができます。";
 
-  char *str = msg_str;
+  const char *str = (const char *)msg_str;
   ht_clear();
   while(*str) {
     if (! (str = getFontData(fnt, str)) )  {

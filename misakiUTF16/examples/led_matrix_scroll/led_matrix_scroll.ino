@@ -1,3 +1,10 @@
+//
+// 美咲フォントライブラリサンプルプログラム by たま吉さん
+// 2024/03/18 作成
+// 2025/11/06 符号なし1バイトデータの型をuint8_tに統一
+// 2025/11/11 関数名の Typo（charUFT8toUTF16 → charUTF8toUTF16）修正
+//
+
 #include "Arduino_LED_Matrix.h"
 #include "misakiUTF16.h"
 
@@ -71,14 +78,14 @@ void demo() {
 
   // テスト用文字列
   char msg_str[] = "あいうえお123abcABCｱｲｳｴｵ、今日は3月18日です。かんたんなかんじの表示ができます。";
-  char *str = msg_str;
+  const char *str = msg_str;
 
   while(*str) {
     uint16_t ucode;  // utf16文字コード
-    str += charUFT8toUTF16(&ucode, str);      // utf8 1文字分をutf16に変換
-    width = isZenkaku(ucode) ? 8: 4;          // フォント幅の取得
-    getFontDataByUTF16(font, ucode);          // フォントデータの取得
-    scrollIn(font, width, 1, 80);             // 1文字分のスクロール表示
+    str += charUTF8toUTF16(&ucode, str); // utf8 1文字分をutf16に変換
+    width = isZenkaku(ucode) ? 8: 4;     // フォント幅の取得
+    getFontDataByUTF16(font, ucode);     // フォントデータの取得
+    scrollIn(font, width, 1, 80);        // 1文字分のスクロール表示
   }
 }
 

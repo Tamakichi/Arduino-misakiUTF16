@@ -22,14 +22,14 @@
 #define FONT_LEN       7                                      // 1フォントのバイト数
 #define FONT_TOFU      0x25a1                                 // 豆腐"□"コード
 
-int16_t findcode(uint16_t  ucode) ;                               // フォントコード検索
-boolean getFontDataByUTF16(uint8_t* fontdata, uint16_t utf16) ;  // UTF16に対応する美咲フォントデータ8バイトを取得
-uint16_t hkana2kana(uint16_t utf16);                          // 半角カナを全角に変換
-uint16_t utf16_HantoZen(uint16_t utf16);                      // UTF16半角コードをUTF16全角コードに変換
-uint8_t charUTF8toUTF16(uint16_t* pUTF16, const uint8_t* pUTF8);    // UTF8文字(1～3バイ)をUTF16に変換
-int16_t Utf8ToUtf16(uint16_t* pUTF16, uint8_t *pUTF8);        // UTF8文字列をUTF16文字列に変換
+int16_t findcode(uint16_t  ucode) ;                             // フォントコード検索
+boolean getFontDataByUTF16(uint8_t* fontdata, uint16_t utf16) ; // UTF16に対応する美咲フォントデータ8バイトを取得
+uint16_t hkana2kana(uint16_t utf16);                            // 半角カナを全角に変換
+uint16_t utf16_HantoZen(uint16_t utf16);                        // UTF16半角コードをUTF16全角コードに変換
+uint8_t charUTF8toUTF16(uint16_t* pUTF16, const char* pUTF8);   // UTF8文字(1～3バイ)をUTF16に変換
+int16_t Utf8ToUtf16(uint16_t* pUTF16, const char *pUTF8);       // UTF8文字列をUTF16文字列に変換
 
-uint8_t* getFontData(uint8_t* fontdata, const uint8_t* pUTF8, bool h2z=false); // フォントデータ取得
+char* getFontData(uint8_t* fontdata, const char* pUTF8, boolean h2z=false); // フォントデータ取得
 const uint8_t*  getFontTableAddress();                        // フォントデータテーブル先頭アドレス取得
 
 boolean isBasicLatin(uint16_t ucode);                         // 基本ラテン文字判定

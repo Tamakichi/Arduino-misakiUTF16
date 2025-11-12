@@ -25,7 +25,7 @@ void banner(const char* pUTF8, const char* fore, const char* back) {
   // バナー用パターン作成
   while (*pUTF8) {
     uint16_t ucode;                               // utf16文字コード
-    size_t len = charUTF8toUTF16(&ucode, (const uint8_t*)pUTF8);  // utf8 1文字分をutf16に変換
+    size_t len = charUTF8toUTF16(&ucode, pUTF8);  // utf8 1文字分をutf16に変換
     if (len == 0) {
         Serial.println();
         Serial.println("未サポート文字が使用されています");
