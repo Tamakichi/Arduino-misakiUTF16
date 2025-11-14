@@ -274,7 +274,7 @@ ARM、EPS8266、ESP32環境では通常のメモリアドレスとして参照�
 ### 簡単な記述例１（１文字分のフォント取得）
 
 ````cpp
-#include <misakiUTF16.h>
+#include "misakiUTF16.h"
 
 void setup() {
 Serial.begin(115200);
@@ -305,7 +305,7 @@ void loop() {
 ### 簡単な記述例2（文字列分のフォントを繰り返し取得）
 
 ````cpp
-#include <misakiUTF16.h>
+#include "misakiUTF16.h"
 
 void setup() {
   Serial.begin(115200);
