@@ -143,7 +143,7 @@ void ht_scrollIn(uint8_t* p, int wt) {
         for (i = 0; i < 8; i++) {
             buf[i]<<=1;
         }
-        ht_write_at(p, 7-j, 0);
+        ht_write_at(p, 7-j, 1);
         ht_update();
         delay(wt);
     }
@@ -160,7 +160,7 @@ void demo() {
   uint8_t  fnt[8];
 
   // テスト用文字列
-  char msg_str[] = "あいうえお、今日は７月１０日です。かんたんなかんじの表示ができます。";
+  char msg_str[] = "あいうえお、今日は１１月１２日です。かんたんなかんじの表示ができます。";
 
   const char *str = (const char *)msg_str;
   ht_clear();
