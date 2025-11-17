@@ -1,0 +1,58 @@
+//
+// TVout with 美咲フォント  
+// 2016/07/10 たま吉さん 
+// 2016/08/19 ライブラリの仕様変更対応
+// 2025/11/11 関数名の Typo（charUFT8toUTF16 → charUTF8toUTF16）修正, 半角文字対応
+// 2025/11/15 フォントデータ取得処理ミス対応
+// 
+ 
+#include <misakiUTF16.h>
+#include <TVout.h>
+
+TVout TV;
+
+// 指定位置に１文字表示
+uint8_t mputc(uint8_t x, uint8_t y, uint16_t code) {
+  int16_t pos; // フォントデータテーブルコード
+  if ( (pos = findcode(code)) < 0) 
+    return 0;
+  uint8_t width = isZenkaku(code) ? 8: 4;  // フォント幅の取得
+  TV.bitmap(x,y, getFontTableAddress()+pos*7 ,0, width, 7); 
+  return width;
+}
+
+// 指定位置に文字列表示
+void mprint(uint8_t x, uint8_t y, const char* str) {
+  uint16_t utf16;
+  int8_t   len;
+  uint8_t width;
+  
+  while(1) {
+    len = charUTF8toUTF16(&utf16, str); // 先頭文字のutf16コードの取得
+    if (!len) 
+      break;  // コードエラー   
+    width = mputc(x, y, utf16); // 1文字表示
+    if (!width)
+      break;
+    x+=width;
+    if (x >= 120) {
+      x = 0; y+=8;
+    }
+    str+=len;
+    if (!*str)
+      break; // 文末に達した
+  }
+}
+
+void setup() {
+  TV.begin(NTSC, 120, 96);
+  mprint(0,0,"【みさきフォント表示テスト】");
+  mprint(15,14,"今日は11月15日です。");
+  mprint(5,30,"ねこにコ・ン・バ・ン・ワ");  
+  mprint(0,45,"ＡｒｄｕｉｎｏでＴＶ出力です。");  
+  mprint(0,60,"ＴＶＯＵＴライブラリ使用です。");
+  mprint(0,75,"そこそこ読めますね！");  
+}
+
+void loop() {
+}
