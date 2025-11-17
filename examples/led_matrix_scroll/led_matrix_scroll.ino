@@ -77,7 +77,7 @@ void demo() {
   uint8_t width;     // フォント幅
 
   // テスト用文字列
-  char msg_str[] = "あいうえお123abcABCｱｲｳｴｵ、今日は3月18日です。かんたんなかんじの表示ができます。";
+  char msg_str[] = "あいうえお123abcABCｱｲｳｴｵ、今日は11月11日です。かんたんなかんじの表示ができます。";
   const char *str = msg_str;
 
   while(*str) {

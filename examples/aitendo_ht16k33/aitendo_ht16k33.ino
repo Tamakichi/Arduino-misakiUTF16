@@ -169,7 +169,7 @@ void demo() {
          Serial.println("Error"); 
          break;
     }
-    ht_scrollIn(fnt, 150);         
+    ht_scrollIn(fnt, 100);         
   }
 }
 
