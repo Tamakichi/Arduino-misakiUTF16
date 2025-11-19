@@ -5,6 +5,7 @@
 // 2024/03/18 半角文字の4ドット幅を考慮した表示に修正
 // 2025/11/06 符号なし1バイトデータの型をuint8_tに統一
 // 2025/11/08 エラー時の処理の追加
+// 2025/11/19 ネイティブUSBシリアル対応
 //
 
 #include <misakiUTF16.h>
@@ -66,10 +67,7 @@ void banner(const char* pUTF8, const char* fore, const char* back) {
 
 void setup() {
   Serial.begin(115200);
-  // ネイティブUSBボードではシリアルが ready になるまで待つと見やすい
-  #if defined(USBCON)
-    while (!Serial) { delay(10); } // Leonardo 等
-  #endif
+  while (!Serial) { delay(10); }
 
   // 使用例（fore/back は同幅のものを指定することを推奨）
   banner("埼玉☆さいたま ｻｲﾀﾏ!", "##", "  ");
